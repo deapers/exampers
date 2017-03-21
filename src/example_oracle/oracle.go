@@ -13,10 +13,10 @@ func main() {
 	
 	log.Println("Oracle Driver example")
 	
-	os.Setenv("NLS_LANG", "")
+	os.Setenv("NLS_LANG", "GBK")
 
 	// 用户名/密码@实例名  跟sqlplus的conn命令类似
-	db, err := sql.Open("oci8", "jsca/oracle@10.0.193.3/jsdc")
+	db, err := sql.Open("oci8", "jsca/oracle@orcl")
 	if err != nil {
 		log.Fatal(err)
 	}
