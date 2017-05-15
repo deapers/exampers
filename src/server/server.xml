@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <log>
+        <property name="LogPath">../../log/trade.log</property>
+        <property name="LogVerbose">true</property>
+    </log>
+    <server>
+        <property name="RPCPort">9998</property>
+    </server>
+    <schema>
+        <property name="DBurl">cta1/oracle@127.0.0.1/orcl.js.local</property>
+    </schema>
+</resources>
