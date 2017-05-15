@@ -60,10 +60,6 @@ func main() {
 			break
 		}
 		fmt.Printf("Info: [%s] is excuted success!\n", sFlowCode)
-		/*} else {
-			fmt.Printf("Info: [%s] is excuted, skipped.\n", sFlowCode)
-		}*/
-
 	}
 
 	rows.Close()

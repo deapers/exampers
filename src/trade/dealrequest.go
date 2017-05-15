@@ -66,10 +66,11 @@ type TRequest struct {
 	scapitalmode    string
 	sbankacco       string
 	sregistrole     string
-	dacceptdate     string
+	sacceptdate     string
 	sotherserialno  string
 	slineid         string
 	ipartition      int32
+	isubpartion     int32
 }
 
 type TradeConfirm struct {
@@ -108,6 +109,8 @@ func DealRequestPart(db *sql.DB, wp *sync.WaitGroup, prt int32) error {
 func DealRequestCfm(db *sql.DB, wsp *sync.WaitGroup, prt int32, subprt int32) error {
 	var rtn error
 	var sql string
+	var req TRequest
+
 	logger.Infof("Begin DealRequestCfm[%d,%d]... ", prt, subprt)
 	sql = "select vc_fundacco, nvl(vc_tradeacco, '-'), vc_fundcode," +
 		"       nvl(c_sharetype, 'A') c_sharetype, '207' vc_branchcode, '207' vc_netno," +
@@ -139,7 +142,13 @@ func DealRequestCfm(db *sql.DB, wsp *sync.WaitGroup, prt int32, subprt int32) er
 	}
 
 	for rows.Next() {
-		logger.Infof("Deal trequest_cds[%d][%d]", prt, subprt)
+		//logger.Infof("Deal trequest_cds[%d][%d]", prt, subprt)
+		rows.Scan(&req.sfundacco, &req.stradeacco, &req.sfundcode, &req.ssharetype, &req.sagencyno, &req.snetno,
+			&req.schildnetno, &req.sotheracco, &req.sothertrade, &req.sotheragency, &req.sothernetno, &req.srequestno,
+			&req.srequestdate, &req.srequesttime, &req.smachinetime, &req.ssysdate, &req.scfmdate,
+			&req.fbalance, &req.fshares, &req.fconfirmbalance, &req.fconfirmshares,
+			&req.sbusinflag, &req.sacceptdate, &req.sotherserialno, &req.ipartition, &req.isubpartion)
+		logger.Infoln(req)
 	}
 	rows.Close()
 
