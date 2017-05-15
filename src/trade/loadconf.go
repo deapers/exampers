@@ -40,7 +40,7 @@ type Property struct {
 func LoadSysConf() {
 	var conf SysConf
 
-	xmlfile, err := ioutil.ReadFile("server.xml")
+	xmlfile, err := ioutil.ReadFile("../../conf/server.xml")
 	if err != nil {
 		logger.Fatal(err)
 	}
