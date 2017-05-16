@@ -112,19 +112,19 @@ func DealRequestCfm(db *sql.DB, wsp *sync.WaitGroup, prt int32, subprt int32) er
 	var req TRequest
 
 	logger.Infof("Begin DealRequestCfm[%d,%d]... ", prt, subprt)
-	sql = "select vc_fundacco, nvl(vc_tradeacco, '-'), vc_fundcode," +
+	sql = "select nvl(vc_fundacco,'-'), nvl(vc_tradeacco, '-'), vc_fundcode," +
 		"       nvl(c_sharetype, 'A') c_sharetype, '207' vc_branchcode, '207' vc_netno," +
 		"       vc_netno vc_childnetno," +
-		"       decode(c_businflag, '098', nvl(vc_otheracco, '-'), vc_otheracco) vc_otheracco," +
-		"       decode(c_businflag,'098',nvl(vc_othertradeacco, '-'),vc_othertradeacco) vc_othertradeacco," +
-		"       null c_otheragencyno, null vc_othernetno," +
+		"       decode(c_businflag, '098', nvl(vc_otheracco, '-'), nvl(vc_otheracco,'-')) vc_otheracco," +
+		"       decode(c_businflag,'098',nvl(vc_othertradeacco, '-'),nvl(vc_othertradeacco,'-')) vc_othertradeacco," +
+		"       '-' c_otheragencyno, '-' vc_othernetno," +
 		"       nvl(vc_requestno, '*') vc_requestno," +
 		"       nvl(to_char(vc_requestdate,'YYYYMMDD'), '20010101') vc_requedate," +
 		"       nvl(vc_requesttime, '*') vc_requesttime, '20010101000101' vc_machinedate," +
-		"       nvl(to_char(vc_sysdate, 'YYYYMMDD'), '20010101') vc_sysdate, null vc_confirmdate," +
+		"       nvl(to_char(vc_sysdate, 'YYYYMMDD'), '20010101') vc_sysdate, '-' vc_confirmdate," +
 		"       en_balance, en_share, 0 en_confirmbala, 0 en_confirmshare," +
 		"       c_businflag,substr(vc_acceptdate, 1, 8) vc_accepdate, vc_otherserialno," +
-		"       l_partition" +
+		"       l_partition,l_subpartion" +
 		"  from trequest_cds t" +
 		" where nvl(c_tastatus, 0) = '0'" +
 		"   and c_confirmflag = '9' " +
@@ -143,12 +143,16 @@ func DealRequestCfm(db *sql.DB, wsp *sync.WaitGroup, prt int32, subprt int32) er
 
 	for rows.Next() {
 		//logger.Infof("Deal trequest_cds[%d][%d]", prt, subprt)
-		rows.Scan(&req.sfundacco, &req.stradeacco, &req.sfundcode, &req.ssharetype, &req.sagencyno, &req.snetno,
+		err := rows.Scan(&req.sfundacco, &req.stradeacco, &req.sfundcode, &req.ssharetype, &req.sagencyno, &req.snetno,
 			&req.schildnetno, &req.sotheracco, &req.sothertrade, &req.sotheragency, &req.sothernetno, &req.srequestno,
 			&req.srequestdate, &req.srequesttime, &req.smachinetime, &req.ssysdate, &req.scfmdate,
 			&req.fbalance, &req.fshares, &req.fconfirmbalance, &req.fconfirmshares,
 			&req.sbusinflag, &req.sacceptdate, &req.sotherserialno, &req.ipartition, &req.isubpartion)
-		logger.Infoln(req)
+		if err != nil {
+			logger.Fatal(prt, subprt, err)
+			rtn = errors.New("request scan error")
+		}
+		logger.Infof("%+v", req)
 	}
 	rows.Close()
 

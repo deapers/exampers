@@ -77,8 +77,9 @@ func LoadFundInfo(db *sql.DB) error {
 	var rtn error
 
 	rows, err := db.Query(
-		"    select a.c_fundcode,a.c_fundname,a.c_moneytype,a.f_issueprice,a.c_managername,a.c_trusteecode, " +
-			"       to_char(a.d_issuedate,'yyyymmdd'),to_char(a.d_setupdate,'yyyymmdd'),a.f_maxbala,a.f_maxshares,a.f_minbala,a.f_minshares,a.f_factcollect " +
+		"    select a.c_fundcode,a.c_fundname,a.c_moneytype,a.f_issueprice,a.c_managername,nvl(a.c_trusteecode,'-'), " +
+			"       to_char(a.d_issuedate,'yyyymmdd'),to_char(a.d_setupdate,'yyyymmdd'),nvl(a.f_maxbala,0)," +
+			"       nvl(a.f_maxshares,0),nvl(a.f_minbala,0),nvl(a.f_minshares,0),nvl(a.f_factcollect,0) " +
 			"  from tfundinfo a " +
 			" where a.c_fundstatus not in ('6','9') " +
 			" order by a.c_fundcode ")
@@ -97,9 +98,12 @@ func LoadFundInfo(db *sql.DB) error {
 	}
 
 	for rows.Next() {
-		rows.Scan(&fnd.sfundcode, &fnd.sfundname, &fnd.smoneytype, &fnd.fissueprice, &fnd.smanagername, &fnd.strusteecode,
+		err := rows.Scan(&fnd.sfundcode, &fnd.sfundname, &fnd.smoneytype, &fnd.fissueprice, &fnd.smanagername, &fnd.strusteecode,
 			&fnd.sissuedate, &fnd.ssetupdate, &fnd.fmaxbala, &fnd.fmaxshares, &fnd.fminbala, &fnd.fminshares, &fnd.ffactcollect)
-
+		if err != nil {
+			logger.Fatal(err)
+			rtn = errors.New("db error")
+		}
 		GMap_Fund[fnd.sfundcode] = fnd
 	}
 	logger.Infoln(GMap_Fund)
@@ -161,14 +165,14 @@ func LoadMoneyProduct(db *sql.DB) error {
 
 	rows, err := db.Query(
 		"    select a.c_fundcode, a.c_assgintype, a.c_incometailtype, a.c_investcircle, " +
-			"		a.c_investmonth, a.c_investday, a.c_incomeinvesttype, a.f_maxredeembyallot, " +
+			"		a.c_investmonth, a.c_investday, a.c_incomeinvesttype, nvl(a.f_maxredeembyallot,0), " +
 			" 		a.c_subendtime, a.c_bankperiod, a.c_subincometype, a.c_manageracco, " +
-			" 		a.f_singleminsub, a.f_singleminrdm, a.f_singlemaxrdm, a.f_maxtotalredeem, " +
-			" 		a.f_maxtotalnetredeem, a.f_redeemratio, a.f_maxallot, a.f_maxnetallot, " +
-			" 		a.f_accomaxallot, a.f_accomaxnetacclot, a.f_accomaxrdm, a.f_singlemaxsub, " +
-			" 		a.c_batchtime, a.c_ist0subcanrdm, a.c_adjustrule, a.f_permitnum, " +
-			" 		a.f_t1rdmmaxratio, a.f_accomaxshares, a.f_accomaxt1rdm, a.f_singlemint1rdm, " +
-			" 		a.f_singlemaxt1rdm, a.c_incometypebyrdm,a.c_registrole,a.c_incomedeadline" +
+			" 		nvl(a.f_singleminsub,0), nvl(a.f_singleminrdm,0), nvl(a.f_singlemaxrdm,0), nvl(a.f_maxtotalredeem,0), " +
+			" 		nvl(a.f_maxtotalnetredeem,0), nvl(a.f_redeemratio,0), nvl(a.f_maxallot,0), nvl(a.f_maxnetallot,0), " +
+			" 		nvl(a.f_accomaxallot,0), nvl(a.f_accomaxnetacclot,0), nvl(a.f_accomaxrdm,0), nvl(a.f_singlemaxsub,0), " +
+			" 		a.c_batchtime, a.c_ist0subcanrdm, a.c_adjustrule, nvl(a.f_permitnum,0), " +
+			" 		nvl(a.f_t1rdmmaxratio,0), nvl(a.f_accomaxshares,0), nvl(a.f_accomaxt1rdm,0), nvl(a.f_singlemint1rdm,0), " +
+			" 		nvl(a.f_singlemaxt1rdm,0), a.c_incometypebyrdm,a.c_registrole,a.c_incomedeadline" +
 			"  from tmoneyproduct a" +
 			" order by a.c_fundcode ")
 	if err != nil {
@@ -186,7 +190,7 @@ func LoadMoneyProduct(db *sql.DB) error {
 	}
 
 	for rows.Next() {
-		rows.Scan(&pro.sfundcode, &pro.sassgintype, &pro.sincometailtype, &pro.sinvestcircle,
+		err := rows.Scan(&pro.sfundcode, &pro.sassgintype, &pro.sincometailtype, &pro.sinvestcircle,
 			&pro.sinvestmonth, &pro.sinvestday, &pro.sincomeinvesttype, &pro.fmaxredeembyallot,
 			&pro.ssubendtime, &pro.sbankperiod, &pro.ssubincometype, &pro.smanageracco,
 			&pro.fsingleminsub, &pro.fsingleminrdm, &pro.fsinglemaxrdm, &pro.fmaxtotalredeem,
@@ -195,7 +199,10 @@ func LoadMoneyProduct(db *sql.DB) error {
 			&pro.sbatchtime, &pro.sist0subcanrdm, &pro.sadjustrule, &pro.fpermitnum,
 			&pro.ft1rdmmaxratio, &pro.faccomaxshares, &pro.faccomaxt1rdm, &pro.fsinglemint1rdm,
 			&pro.fsinglemaxt1rdm, &pro.sincometypebyrdm, &pro.sregistrole, &pro.sincomedeadline)
-
+		if err != nil {
+			logger.Fatal(err)
+			rtn = errors.New("db error")
+		}
 		GMap_Money[pro.sfundcode] = pro
 	}
 	logger.Infoln(GMap_Money)
@@ -243,7 +250,11 @@ func LoadSysParameter(db *sql.DB) error {
 	}
 
 	for rows.Next() {
-		rows.Scan(&sys.sclass, &sys.sitem, &sys.svalue, &sys.sdescribe)
+		err := rows.Scan(&sys.sclass, &sys.sitem, &sys.svalue, &sys.sdescribe)
+		if err != nil {
+			logger.Fatal(err)
+			rtn = errors.New("db error")
+		}
 		GMap_Param[sys.sitem] = sys
 	}
 	logger.Infoln(GMap_Param)
@@ -283,7 +294,11 @@ func LoadSysParameterReal(db *sql.DB) error {
 	}
 
 	for rows.Next() {
-		rows.Scan(&sys.sclass, &sys.sitem, &sys.svalue, &sys.sdescribe)
+		err := rows.Scan(&sys.sclass, &sys.sitem, &sys.svalue, &sys.sdescribe)
+		if err != nil {
+			logger.Fatal(err)
+			rtn = errors.New("db error")
+		}
 		GMap_ParamReal[sys.sitem] = sys
 	}
 	logger.Infoln(GMap_ParamReal)
